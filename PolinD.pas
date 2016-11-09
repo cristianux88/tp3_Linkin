@@ -69,11 +69,15 @@ Type
          function cotaInfNegLagrangue(Pol:Cls_Vector):extended;
 
          //SubFunciones Cotas para Laguerre
-         function cotaSupPosLaguerre(Pol:Cls_Vector;X:Extended):extended;
-         function cotaSupNegLaguerre(Pol:Cls_Vector;X:Extended):extended;
-         function cotaInfPosLaguerre(Pol:Cls_Vector;X:Extended):extended;
-         function cotaInfNegLaguerre(Pol:Cls_Vector;X:Extended):extended;
+         function cotaSupPosLaguerre(Pol:Cls_Vector):extended;
+         function cotaSupNegLaguerre(Pol:Cls_Vector):extended;
+         function cotaInfPosLaguerre(Pol:Cls_Vector):extended;
+         function cotaInfNegLaguerre(Pol:Cls_Vector):extended;
+         procedure Laguerre1(Pol:Cls_Vector;var cota:Cls_Vector);
 
+         //Sturm
+         procedure sturm1(Pol:Cls_Vector;Inter:Cls_Vector;var InterRaiz:Cls_Vector);
+         procedure derivada_Vector(Pol:Cls_Vector;var PolDer:Cls_Vector);
          const SALTO=0.5;
 end;
 
@@ -582,7 +586,7 @@ begin
   self.Invertir_Coef();
 end;
 
-function cotaSupPosLaguerre(Pol:Cls_Vector):extended;
+function cls_Polin.cotaSupPosLaguerre(Pol:Cls_Vector):extended; //nuevo
 var
    B: Cls_Vector;
    i,band:byte;
@@ -615,7 +619,7 @@ begin
     CotaSupPosLaguerre:=-1;
     B.destroy;
 end;
-function cotaInfPosLaguerre(Pol:Cls_Vector):extended;
+function cls_Polin.cotaInfPosLaguerre(Pol:Cls_Vector):extended;
 var
    i,band:byte;
    newPol,B:Cls_Vector;
@@ -651,7 +655,8 @@ begin
   B.Destroy;
   newPol.Destroy;
 end;
-function cotaSupNegLaguerre(Pol:Cls_Vector):extended;
+
+function cls_Polin.cotaSupNegLaguerre(Pol:Cls_Vector):extended;
 var
    i,band:byte;
    newPol,B:Cls_Vector;
@@ -687,7 +692,7 @@ begin
   B.Destroy;
   newPol.Destroy;
 end;
-function cotaInfNegLaguerre(Pol:Cls_Vector):extended;
+function cls_Polin.cotaInfNegLaguerre(Pol:Cls_Vector):extended;
 var
   i,band:byte;
   newPol,B:Cls_Vector;
@@ -719,7 +724,7 @@ begin
   else
     CotaInfNegLaguerre:=1;
 end;
-procedure Laguerre1(Pol:Cls_Vector;var cota:Cls_Vector);
+procedure cls_Polin.Laguerre1(Pol:Cls_Vector;var cota:Cls_Vector);
 var i,c:byte;
 begin
   c:=0;
@@ -738,15 +743,15 @@ begin
      cota.cells[3]:=cotaSupPosLaguerre(Pol);
     end;
 end;
-procedure derivada(Pol:Cls_Vector;var PolDer:Cls_Vector);
+procedure cls_Polin.derivada_Vector(Pol:Cls_Vector;var PolDer:Cls_Vector);
 var
-  i,grado:byte;
+  i,grad:byte;
 begin
-  grado:=Pol.N;
+  grad:=Pol.N;
   for i:=0 to Pol.N-1 do
     begin
-      PolDer.cells[i]:=Pol.cells[i]*grado;
-      grado:=grado-1;
+      PolDer.cells[i]:=Pol.cells[i]*grad;
+      grad:=grad-1;
     end;
   PolDer.N:=Pol.N-1;
 end;
@@ -781,7 +786,7 @@ begin
     end;
 end;
 
-procedure sturm1(Pol:Cls_Vector;Inter:Cls_Vector;var InterRaiz:Cls_Vector);
+procedure cls_Polin.sturm1(Pol:Cls_Vector;Inter:Cls_Vector;var InterRaiz:Cls_Vector);
 var
   Pol1,Pol2,Pol3:Cls_Vector;
   m:Cls_Matriz;
@@ -791,7 +796,7 @@ begin
   Pol2:=Cls_Vector.crear(Pol.N);
   Pol3:=Cls_Vector.crear(Pol.N);
   Pol1.Copiar(Pol);//Copiamos el polinomio dado en Pol1 porque mas adelante lo modificaremos
-  derivada(Pol1,Pol2);
+  derivada_vector(Pol1,Pol2);
   m:=Cls_Matriz.crear(Pol.N+2,Inter.N+1);//Se coloca Pol.N+2 porque queremos una fila mas donde se colocara la cantidad de cambio de variables
   //Evaluamos el pol1 y la derivada
   for j:=0 to Inter.N do//Este For controla las columnas de la tabla(hace referencia a la cantidad de puntos dados en el intervalo pasado por parametro)
@@ -845,9 +850,11 @@ begin
       end;
    end;
 end;
+
 Function Cls_Polin.Sturm():Cls_Vector;
 var
   cota,interR:Cls_Vector;
+  c1, c2, c3, c4: extended;
 begin
   if self.Grado>0 then
     begin
@@ -1163,41 +1170,6 @@ begin
     a.Destroy;
     b.Destroy;
     c.Destroy;
-end;
-
-procedure cls_Polin.sturm(Pol:Cls_Vector;Inter:Cls_Vector;var InterRaiz:Cls_Vector);
-var
-  Pol1,Pol2:Cls_Vector;
-  m:Cls_Matriz;
-  i,j,c:byte;
-begin
-  Pol1:=Cls_Vector.crear(100);
-  Pol2:=Cls_Vector.crear(100);
-  m:=Cls_Matriz.crear(Pol.N+1,Inter.N);//Se coloca Pol.N+1 porque queremos una fila mas donde se colocara la cantidad de cambio de variables
-  for i:=0 to Pol.N do//Este For controla las filas de la tabla(hace referencia a los polinomios que obtendre y evaluados)
-    begin
-      for j:=0 to Inter.N do//Este For controla las columnas de la tabla(hace referencia a la cantidad de puntos dados equivalentes a los intervalos)
-        m.cells[i,j]:=EvaluarPolinomio(Pol1,Inter.cells[j]);
-      //dividePolinomio(Pol1,Pol2,Pol3);//Obtenemos un nuevo polinomio que correspode a el resto de dividir Pol1 / Pol2
-      Pol1.Copiar(Pol2);
-      //Pol2.Copiar(Pol3);
-    end;
-  for j:=0 to m.NumC do
-    begin
-      c:=0;
-      for i:=0 to m.NumF do
-        begin
-          if m.cells[i,j]*m.cells[i+1,j]<0 then
-            c:=c+1;
-        end;
-      m.cells[i,j]:=c;
-    end;
-  for j:=0 to m.NumC-1 do
-    if abs(m.cells[m.NumF,j]-m.cells[m.NumF,j])=1 then
-      begin
-        InterRaiz.cells[j]:=Inter.cells[j];
-        InterRaiz.cells[j+1]:=Inter.cells[j+1];
-      end;
 end;
 
 Function cls_Polin.Raices_To_String(mascara: integer): String;

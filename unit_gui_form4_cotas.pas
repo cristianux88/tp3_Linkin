@@ -63,46 +63,14 @@ Begin
      Vector:= cls_Vector.crear(4);
      polin.Lagrange(vector);
      Lagrange_Memo.Lines.Text:= Vector.ToString(2);
-     polin.Laguerre(0,vector);
+     vector:= polin.Laguerre();
      Laguerre_Memo.Lines.Text:= Vector.ToString(2);
      Vector.Free;
      vector:= polin.cotasNewton();
      Newton_Memo.Lines.Text:= Vector.ToString(2);
-     //polin.sturm(polin.Coef,vector,vector);
+     Vector:= polin.sturm();
+     Sturm_Memo.Lines.Text:= Vector.ToString(2);
 end;
-
-{
-procedure TForm1.Racionales_MemoMouseWheelDown(Sender: TObject;
-  Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
-VAR
-    raices: cls_Vector;
-begin
-     //Posibles Raices Racionales
-     raices:= Cls_Vector.Crear();
-     Pol_N.PosiblesRaicesRacionales(Pol_N.Coef,raices);
-
-     if (MASC_RAC=MIN_MASC+1) then MASC_RAC:= MAX_MASC
-     else dec(MASC_RAC);
-     Racionales_Memo.Lines.Text:= raices.ToString(MASC_RAC);
-     //showmessage(IntToStr(Masc_RAC));
-     raices.Free;
-end;
-
-procedure TForm1.Racionales_MemoMouseWheelUp(Sender: TObject;
-  Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
-VAR
-    raices: cls_Vector;
-begin
-     //Posibles Raices Racionales
-     raices:= Cls_Vector.Crear();
-     Pol_N.PosiblesRaicesRacionales(Pol_N.Coef,raices);
-
-     if (MASC_RAC=MAX_MASC) then MASC_RAC:= MIN_MASC +1
-     else inc(MASC_RAC);
-     Racionales_Memo.Lines.Text:= raices.ToString(MASC_RAC);
-     raices.Free;
-end;
-}
 
 BEGIN
 END.
