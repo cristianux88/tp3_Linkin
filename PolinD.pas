@@ -40,7 +40,7 @@ Type
          Procedure bairstow(error:extended; r:extended; s:extended);
    const
          max_iter=200;
-   		 INFINITO=200;
+   		 INFINITO=9999999;
   private
          Procedure Copiar(Polin2: cls_Polin); //pol:= polin2
          Function determinante():extended;//Bairstow
