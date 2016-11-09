@@ -15,7 +15,6 @@ Type
          Coeficientes: cls_Vector; // vector de Coeficientes [Ao,...,An]
          Nraices: cls_Matriz; //Matriz de 2 x N para las raices, Parte Real y Parte Im
   Public
-
          band_A0: boolean; //indica si se visualiza [a0,...,aN]=TRUE; [aN,...,a0]=FALSE
          Masc: integer; //Mascara: guarda la cantidad de decimales para mostrar cuando se convierte con Coef_To_String()
          constructor Crear(Grad: integer = 5; Mascara: integer=0; Visualizar_A0:boolean = false);
@@ -26,7 +25,7 @@ Type
          Function Clon():cls_Polin; //polin2:= pol
          procedure Invertir_Coef(); //a0,...aN ---> aN...a0
          Function Coef_To_String(): AnsiString; //comienza a mostrar de X^0...X^n si Ban_A0= true sino muestra X^n...X^0
-         Function Raices_To_String(): String;
+         Function Raices_To_String(mascara: integer): String;
          Function evaluar(x:extended):extended;
          Function derivada():cls_Polin; //devuelve la derivada primera del polinomio
          Function ruffini(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
@@ -962,20 +961,83 @@ begin
       end;
 end;
 
-Function cls_Polin.Raices_To_String(): String;
+Function cls_Polin.Raices_To_String(mascara: integer): String;
 Var
-    cad: String;
+    cad,real,imag: String;
     i: integer;
 Begin
-    for i:=1 to Grado do Begin
-       if (Raices.cells[0,i] <>0) then //Parte Real
-          cad:= cad + '  '+FloatToStr(Raices.cells[0,i]);
-       if (Raices.cells[1,i] <>0) then //Parte Imag
-           if Raices.cells[1,i]>0 then
-               cad:= cad + '+'+FloatToStr(Raices.cells[1,i])+'i'
-            else cad:= cad + FloatToStr(Raices.cells[1,i])+'i';
-    end;
-    Result:= cad;
+     case mascara of
+     0: Begin //Mascara Optima elimina los 0 demas
+                for i:=0 to Grado-1 do Begin
+                    if (Raices.cells[0,i] <> 0) then Begin
+                       if (Raices.cells[1,i] <> 0) then Begin
+                          //Raiz con Parte Real y Parte Imag
+                          real:= FloatToStr(Raices.cells[0,i]);//Convierte de extended a String
+                          imag:= FloatToStr(Raices.cells[1,i]); //Convierte de extended a String
+                          cad:= cad + '   ' + real; //Parte Real
+                          if (Raices.cells[1,i] > 0) then
+                             cad:= cad + '+'; //Si la Parte imaginaria es positiva agrega signo '+'
+                          cad:= cad + imag + 'i'; //Parte Imag
+                       end else Begin
+                                //Raiz Solo con Parte Real, Parte Imag = 0
+                                real:= FloatToStr(Raices.cells[0,i]); //Convierte de extended a String
+                                cad:= cad + '   ' + real; //Parte Real
+                         end;
+                    end else if (Raices.cells[1,i] <> 0) then Begin
+                           //Raiz Solo con Parte Imag, Parte Real = 0
+                           imag:= FloatToStr(Raices.cells[1,i]); //Convierte de extended a String
+                           cad:= cad + '   ' + imag + 'i';
+                         end else cad:= cad + '   0'; //Parte Real=0 y Parte Imag= 0... La Raiz es cero
+                end;
+     end; //Mascara Optima elimina los 0 demas
+     11:Begin //sin Mascara
+                for i:=0 to Grado-1 do Begin
+                    if (Raices.cells[0,i] <> 0) then Begin
+                       if (Raices.cells[1,i] <> 0) then Begin
+                          //Raiz con Parte Real y Parte Imag
+                          STR(Raices.cells[0,i], real); //Convierte de extended a String
+                          STR(Raices.cells[1,i], imag); //Convierte de extended a String
+                          cad:= cad + '   ' + real; //Parte Real
+                          if (Raices.cells[1,i] > 0) then
+                             cad:= cad + '+'; //Si la Parte imaginaria es positiva agrega signo '+'
+                          cad:= cad + imag + 'i'; //Parte Imag
+                       end else Begin
+                                //Raiz Solo con Parte Real, Parte Imag = 0
+                                STR(Raices.cells[0,i], real); //Convierte de extended a String
+                                cad:= cad + '   ' + real; //Parte Real
+                         end;
+                    end else if (Raices.cells[1,i] <> 0) then Begin
+                           //Raiz Solo con Parte Imag, Parte Real = 0
+                           STR(Raices.cells[1,i], imag); //Convierte de extended a String
+                           cad:= cad + '   ' + imag + 'i';
+                         end else cad:= cad + '   0'; //Parte Real=0 y Parte Imag= 0... La Raiz es cero
+                end;
+     end; //end 11 sin Mascara
+     else Begin //con Mascara controlando digitos decimales
+                for i:=0 to Grado-1 do Begin
+                    if (Raices.cells[0,i] <> 0) then Begin
+                       if (Raices.cells[1,i] <> 0) then Begin
+                          //Raiz con Parte Real y Parte Imag
+                          STR(Raices.cells[0,i]:0:mascara, real); //Convierte de extended a String
+                          STR(Raices.cells[1,i]:0:mascara, imag); //Convierte de extended a String
+                          cad:= cad + '   ' + real; //Parte Real
+                          if (Raices.cells[1,i] > 0) then
+                             cad:= cad + '+'; //Si la Parte imaginaria es positiva agrega signo '+'
+                          cad:= cad + imag + 'i'; //Parte Imag
+                       end else Begin
+                                //Raiz Solo con Parte Real, Parte Imag = 0
+                                STR(Raices.cells[0,i]:0:mascara, real); //Convierte de extended a String
+                                cad:= cad + '   ' + real; //Parte Real
+                         end;
+                    end else if (Raices.cells[1,i] <> 0) then Begin
+                           //Raiz Solo con Parte Imag, Parte Real = 0
+                           STR(Raices.cells[1,i]:0:mascara, imag); //Convierte de extended a String
+                           cad:= cad + '   ' + imag + 'i';
+                         end else cad:= cad + '   0'; //Parte Real=0 y Parte Imag= 0... La Raiz es cero
+                end;
+                end; //end else
+     end; //case
+     RESULT:= cad;
 end;
 
 BEGIN

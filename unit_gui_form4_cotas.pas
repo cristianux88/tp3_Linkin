@@ -62,12 +62,12 @@ Var
 Begin
      Vector:= cls_Vector.crear(4);
      polin.Lagrange(vector);
-     Lagrange_Memo.Lines.Text:= Vector.ToString(4);
+     Lagrange_Memo.Lines.Text:= Vector.ToString(2);
      polin.Laguerre(0,vector);
-     Laguerre_Memo.Lines.Text:= Vector.ToString(4);
+     Laguerre_Memo.Lines.Text:= Vector.ToString(2);
      Vector.Free;
      vector:= polin.cotasNewton();
-     Newton_Memo.Lines.Text:= Vector.ToString(4);
+     Newton_Memo.Lines.Text:= Vector.ToString(2);
      //polin.sturm(polin.Coef,vector,vector);
 end;
 

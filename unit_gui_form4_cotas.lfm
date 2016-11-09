@@ -14,7 +14,7 @@ object Form4: TForm4
     Top = 8
     Width = 333
     Caption = 'Lagrange'
-    ClientHeight = 84
+    ClientHeight = 77
     ClientWidth = 329
     TabOrder = 0
     object Lagrange_Memo: TMemo
@@ -43,7 +43,7 @@ object Form4: TForm4
     Top = 128
     Width = 333
     Caption = 'Laguerre'
-    ClientHeight = 84
+    ClientHeight = 77
     ClientWidth = 329
     TabOrder = 1
     object Laguerre_Memo: TMemo
@@ -72,7 +72,7 @@ object Form4: TForm4
     Top = 248
     Width = 333
     Caption = 'Newton'
-    ClientHeight = 84
+    ClientHeight = 77
     ClientWidth = 329
     TabOrder = 2
     object Newton_Memo: TMemo
@@ -101,7 +101,7 @@ object Form4: TForm4
     Top = 368
     Width = 333
     Caption = 'Sturm'
-    ClientHeight = 84
+    ClientHeight = 77
     ClientWidth = 329
     TabOrder = 3
     object Sturm_Memo: TMemo

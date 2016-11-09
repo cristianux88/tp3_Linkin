@@ -16,6 +16,9 @@ uses
     Classes, Forms, StdCtrls, Menus, PolinD, Controls, Types;
 
 type
+
+  { TForm1 }
+
   TForm1 = class(TForm)
     Bairstrow_Item: TMenuItem;
     Cotas: TMenuItem;
@@ -35,7 +38,7 @@ type
     Pol_N_Memo: TMemo;
     Pol_N_Main_Menu: TMenuItem;
     procedure FormCreate(Sender: TObject);
-    procedure Actualiza();
+    procedure Actualiza(); //Actualiza los componentes del Formulario, con los nuevos valores
     procedure Bairstrow_ItemClick(Sender: TObject);
     procedure CotasClick(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: char);
@@ -48,6 +51,7 @@ type
       MousePos: TPoint; var Handled: Boolean);
     procedure Pol_N_MemoMouseWheelUp(Sender: TObject; Shift: TShiftState;
       MousePos: TPoint; var Handled: Boolean);
+    procedure Racionales_MemoClick(Sender: TObject);
     procedure Racionales_MemoMouseWheelDown(Sender: TObject;
       Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
     procedure Racionales_MemoMouseWheelUp(Sender: TObject; Shift: TShiftState;
@@ -55,17 +59,19 @@ type
     procedure SalirClick(Sender: TObject);
     procedure X_LabelClick(Sender: TObject);
   private
-         Procedure actualiza_Pol_N();
-         Function Obtiene(Var X:Extended): Boolean; //Carga un X para Evaluar Polinomio
-         Procedure actualiza_evalua(X:extended = 0);
+         Procedure actualiza_Pol_N();//actualiza la visualizacion del polinomio
+         Function ObtieneX(): Boolean; //Carga un X para Evaluar Polinomio
+         Procedure actualiza_evalua(); //Actualiza el Polinomio evaluado en un valor X
+         Function Obtiene_Mascara(): Boolean; //Para Actualizar Raices Racionales
          Procedure actualiza_Posibles_Raices_Enteras();//Actualiza en Form
          Procedure actualiza_Posibles_Raices_Racionales();//Actualiza en Form
          Procedure Check_Enabled();
   public
         //Variables Principales
         Pol_N: cls_Polin; //Polinomio Principal de GradoN
-        Pol_N_load: boolean;
+        Pol_N_load: boolean; //Indica si el polinomio esta cargado
         MASC_RAC: byte; //Guarda la Mascara para Posibles Raices Racionales
+        X: extended; // Guarda el valor X para evaluar el Polinomio --> P(X)
   const
        MIN_MASC = 0;
        MAX_MASC = 11;
@@ -112,7 +118,7 @@ Begin
      Self.Caption:='Tp3 - Linkin - Polinomio << Grado '+IntToStr(Pol_N.Grado())+' >>';
 end;
 
-Function TForm1.Obtiene(Var X:Extended): Boolean;
+Function TForm1.ObtieneX(): Boolean;
 Var
    cad: string;
    pos: integer;
@@ -125,17 +131,33 @@ Begin
      end;
 end;
 
-Procedure TForm1.actualiza_evalua(X: extended = 0);
+Function TForm1.Obtiene_Mascara(): Boolean; //Para Actualizar Raices Racionales
+Var
+   cad: string;
+   num, pos: integer;
+Begin
+     cad:= InputBox('Mascara de Decimales','Cantidad: ',IntToStr(MASC_RAC));
+     VAL(cad,num,pos);
+     if (pos=0) then Begin
+        if ((MIN_MASC<= num) and (num<= MAX_MASC)) then Begin
+            MASC_RAC:= num;
+            RESULT:= True;
+        end else RESULT:= False;
+     end else RESULT:= False;
+
+end;
+
+Procedure TForm1.actualiza_evalua();
 Begin
      X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Pol_N.evaluar(X));
 end;
 
 procedure TForm1.X_LabelClick(Sender: TObject);
 var
-  X: extended;
+  valor: extended;
 begin
-     if obtiene(X) then
-        actualiza_evalua(X);
+     if obtieneX() then
+        actualiza_evalua();
 end;
 
 Procedure TForm1.actualiza_Posibles_Raices_Enteras();
@@ -146,13 +168,12 @@ Begin
      enteras_Memo.Lines.Text:= raices.ToString();
      raices.Free;
 end;
-
 Procedure TForm1.actualiza_Posibles_Raices_Racionales();
 Var
    raices: cls_Vector;
 Begin
      raices:= Pol_N.PosiblesRaicesRacionales();
-     Racionales_Memo.Lines.Text:= raices.ToString(2);
+     Racionales_Memo.Lines.Text:= raices.ToString(MASC_RAC);
      raices.Free;
 end;
 
@@ -179,8 +200,8 @@ procedure TForm1.Bairstrow_ItemClick(Sender: TObject);
 begin
      if Pol_N_load then Begin;
         if Pol_N.Grado()>2 then Begin
-           Pol_N.bairstow(0.0000000001, 0, 0);
-           showmessage(Pol_N.Raices_To_String());
+           Pol_N.bairstow(0.000000000000001, 0, 0);
+           showmessage(Pol_N.Raices_To_String(2));
         end else ShowMessage('Bairstow: Tiene que ingresar un Polinomio de grado mayor a 2');
      end;
 end;
@@ -247,6 +268,14 @@ begin
          Pol_N.Masc:= Pol_N.Masc +1
      else Pol_N.Masc:= self.MIN_MASC;
      self.Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
+end;
+
+procedure TForm1.Racionales_MemoClick(Sender: TObject);
+Var
+    masc: integer;
+begin
+     if Obtiene_Mascara()then
+        actualiza_Posibles_Raices_Racionales();
 end;
 
 procedure TForm1.Racionales_MemoMouseWheelDown(Sender: TObject;
