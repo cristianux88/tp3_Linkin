@@ -37,8 +37,6 @@ Type
          Function cotasNewton():cls_Vector;
          Function Sturm():Cls_Vector;
          Procedure bairstow(error:extended; r:extended; s:extended);
-   const
-         max_iter=200;
   private
          Procedure Copiar(Polin2: cls_Polin); //pol:= polin2
          Function determinante():extended;//Bairstow
@@ -76,9 +74,10 @@ Type
          procedure Laguerre1(Pol:Cls_Vector;var cota:Cls_Vector);
 
          //Sturm
-         procedure sturm1(Pol:Cls_Vector;Inter:Cls_Vector;var InterRaiz:Cls_Vector);
-         procedure derivada_Vector(Pol:Cls_Vector;var PolDer:Cls_Vector);
+         Function sturm1(Inter:Cls_Vector): Cls_Vector;
+         Function restoDivPolinomioNxN(Divisor:Cls_Polin): Cls_Polin;
          const SALTO=0.5;
+         const max_iter=200;
 end;
 
 implementation
@@ -295,19 +294,17 @@ end;
 
 function Cls_Polin.ruffini(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
 var
-    beta,alfa:extended;
+    alfa:extended;
     divAux:cls_Polin;
 begin
     alfa:=divisor.Coef.cells[1];
-    beta:=divisor.Coef.cells[0];
+    //beta:=divisor.Coef.cells[0];
     divAux:=divisor.clon();
     divAux.Coef.xEscalar(1/alfa);
-    if horner(divAux,cociente,resto) then
-    begin
+    if horner(divAux,cociente,resto) then begin
         cociente.Coef.xEscalar(1/alfa);
     	result:= true;
-	end
-	else
+    end else
     	result:=false;
 end;
 
@@ -743,165 +740,131 @@ begin
      cota.cells[3]:=cotaSupPosLaguerre(Pol);
     end;
 end;
-procedure cls_Polin.derivada_Vector(Pol:Cls_Vector;var PolDer:Cls_Vector);
-var
-  i,grad:byte;
-begin
-  grad:=Pol.N;
-  for i:=0 to Pol.N-1 do
-    begin
-      PolDer.cells[i]:=Pol.cells[i]*grad;
-      grad:=grad-1;
-    end;
-  PolDer.N:=Pol.N-1;
-end;
+
 //Este metodo se encargar de obtener el resto de dividor 2 polinomios de nxn
-procedure restoDivPolinomioNxN(Pol1:Cls_Vector;Pol2:Cls_Vector;var Pol3:Cls_Vector);
+//no controlo si polin>=Divisor xq la derivada de un polinomio me devolvera un polin de menor grado que el dado
+Function cls_Polin.restoDivPolinomioNxN(Divisor:Cls_Polin): Cls_Polin;
 var
-  i,CC:byte;
-  coc:extended;
-begin
-  //En este motodo no controlo si Pol1>=Pol2 ya que la derivada de un polinomio siempre me devolvera un polinomio de menor grado que el dado
-  Pol3.N:=Pol1.N;
-  while Pol3.N>=Pol2.N do
-    begin
-     Pol3.N:=Pol3.N-1;//ponemos Pol1.N-1 porque sabemos que el grado del Pol1.N-1 sera el grado del nuevo polinomio que es el resto sin importar que el primer valor puede darnos 0
-     CC:=Pol1.N-Pol2.N;//Cantidad de ceros que se agregaran
-     //En este For agregamos los cerros para completar el Polinomio Pol2 y asi poder sumas y restar correspondientemente
-     for i:=Pol2.N+1 to Pol2.N+CC do
-       Pol2.cells[i]:=0;
-     coc:=Pol1.cells[0]/Pol2.cells[0];//coc sacara los valores de los cocientes
-     //Este For se encargara de crear el nuevo polinomio que sera el resto
-     for i:=0 to Pol1.N-1 do
-       begin
-       Pol3.cells[i]:=Pol1.cells[i+1]-(Pol2.cells[i+1]*coc);//Se puso i+1 para ignorar el primer calculo
-       end;
-     ///Todo lo que esta qui dentro del while se encargara de eleminar los ceros de adelante
-     while (Pol3.cells[0]=0) and (Pol3.N>0) do
-       begin
-        for i:=0 to Pol3.N-1 do
-         Pol3.cells[i]:=Pol3.cells[i+1];
-        Pol3.N:=Pol3.N-1;
-       end;
-    end;
+  resto: cls_Polin;
+  i,expo: integer;
+  coc: extended;
+Begin
+  Resto:= self.Clon(); //Resto copia los valores del Polin, y se va actualizando hasta ser el Resto
+  while (Resto.Grado >= Divisor.Grado) do begin
+        coc:= Resto.Coef.cells[Resto.grado]/Divisor.Coef.cells[Divisor.Grado];//coc sacara los valores de los cocientes
+        expo:= Resto.Grado - Divisor.Grado;//exponente del nuevo elemento del cociente
+        for i:=0 to Divisor.Grado-1 do //este for actualiza polinomio Resto, ignora el ultimo calculo que es 0
+            Resto.Coef.cells[i+expo]:= Resto.Coef.cells[i+expo]-(Divisor.Coef.cells[i]*coc);
+        Resto.Redimensionar(Resto.Grado() -1);
+  end;
+  RESULT:= RESTO;
 end;
 
-procedure cls_Polin.sturm1(Pol:Cls_Vector;Inter:Cls_Vector;var InterRaiz:Cls_Vector);
+Function cls_Polin.sturm1(Inter:Cls_Vector): Cls_Vector;
 var
-  Pol1,Pol2,Pol3:Cls_Vector;
+  InterRaiz: Cls_Vector;
   m:Cls_Matriz;
   i,j,c:byte;
+  Pol1,Pol2,Pol3: cls_Polin;
 begin
-  Pol1:=Cls_Vector.crear(Pol.N);
-  Pol2:=Cls_Vector.crear(Pol.N);
-  Pol3:=Cls_Vector.crear(Pol.N);
-  Pol1.Copiar(Pol);//Copiamos el polinomio dado en Pol1 porque mas adelante lo modificaremos
-  derivada_vector(Pol1,Pol2);
-  m:=Cls_Matriz.crear(Pol.N+2,Inter.N+1);//Se coloca Pol.N+2 porque queremos una fila mas donde se colocara la cantidad de cambio de variables
-  //Evaluamos el pol1 y la derivada
-  for j:=0 to Inter.N do//Este For controla las columnas de la tabla(hace referencia a la cantidad de puntos dados en el intervalo pasado por parametro)
-   begin
-      m.cells[0,j]:=EvaluarPolinomio(Pol1,Inter.cells[j]);
-      m.cells[1,j]:=EvaluarPolinomio(Pol2,Inter.cells[j]);
-   end;
-  for i:=2 to Pol.N-1 do//Este For controla las filas de la tabla(hace referencia a los polinomios que obtendre y evaluados)
-    begin
-      restoDivPolinomioNxN(Pol1,Pol2,Pol3);//Obtenemos un nuevo polinomio que correspode a el resto de dividir Pol1 / Pol2
-      Pol1.Copiar(Pol2);
-      Pol2.Copiar(Pol3);
-      for j:=0 to Inter.N do//Este For controla las columnas de la tabla(hace referencia a la cantidad de puntos dados en el intervalo pasado por parametro)
-       m.cells[i,j]:=EvaluarPolinomio(Pol3,Inter.cells[j]);
-    end;
-  //Este For se encargara de llenar la ultima fila con el valor que quedo
-  for j:=0 to Inter.N do
-   begin
-    m.cells[Pol.N,j]:=Pol3.cells[0];//En ves de Pol.N podria tambien haber puesto m.NumF-1
-   end;
-   //Este For se encargara de Contar la cantidad de cambio de signos que ay por columna
-   for j:=0 to m.NumC do
-    begin
+     Pol1:= Self.Clon();//Copiamos el polinomio dado en Pol1 porque mas adelante lo modificaremos
+     Pol2:= Self.derivada(); //Derivada del Polinomio
+     //Se coloca Pol.N+2 porque queremos una fila mas donde se colocara la cantidad de cambio de variables
+     m:= Cls_Matriz.crear(self.Coef.N+2,Inter.N+1);
+     //Este For controla las columnas de la tabla(hace referencia a la cantidad de puntos dados en el intervalo pasado por parametro)
+     for j:=0 to Inter.N do begin  //Evaluamos el pol1 y la derivada
+         m.cells[0,j]:= Pol1.evaluar(Inter.cells[j]);
+         m.cells[1,j]:= Pol2.evaluar(Inter.cells[j]);
+     end;
+     //Este For controla las filas de la tabla(hace referencia a los polinomios que obtendre y evaluados)
+     for i:=2 to Self.Coef.N-1 do begin
+         Pol3:= Pol1.restoDivPolinomioNxN(Pol2);//nuevo polinomio, resto de dividir Pol1 / Pol2
+         Pol1.Free; Pol1:= Pol2.Clon();
+         Pol2.Free; Pol2:= Pol3.Clon();
+         //Este For controla las columnas de la tabla(hace referencia a la cantidad de puntos dados en el intervalo pasado por parametro)
+         for j:=0 to Inter.N do
+             m.cells[i,j]:= Pol3.Evaluar(Inter.cells[j]);
+     end;
+     //Este For se encargara de llenar la ultima fila con el valor que quedo
+     for j:=0 to Inter.N do begin
+         m.cells[self.coef.N,j]:= Pol3.Coef.cells[0];//En ves de Pol.N podria tambien haber puesto m.NumF-1
+     end;
+     //Este For se encargara de Contar la cantidad de cambio de signos que hay por columna
+  for j:=0 to m.NumC do begin
       c:=0;
       for i:=0 to m.NumF-1 do
-        begin
-          if m.cells[i,j]*m.cells[i+1,j]<0 then
-            c:=c+1;
-        end;
-      m.cells[m.NumF,j]:=c;
+          if (m.cells[i,j]*m.cells[i+1,j] < 0) then
+            inc(c);
+      m.cells[m.NumF,j]:= c;
     end;
   //Este for se encargara de determinar que intervalo tiene una o mas raices y enviarlo a InterRaiz
-  InterRaiz.cells[0]:=0;//Hace referencia a que cuando empieza ningun intervalo tendra raiz
-  InterRaiz.N:=-1;
-  for j:=0 to 1 do
-   begin
-    if abs(m.cells[m.NumF,j]-m.cells[m.NumF,j+1])>0 then
-      begin
-        InterRaiz.cells[InterRaiz.N+1]:=Inter.cells[j];
-        InterRaiz.cells[InterRaiz.N+2]:=Inter.cells[j+1];
-        InterRaiz.N:=InterRaiz.N+2;
+  InterRaiz:= nil;//Hace referencia a que cuando empieza ningun intervalo tendra raiz
+  for j:=0 to 1 do begin
+      if (abs(m.cells[m.NumF,j]-m.cells[m.NumF,j+1])> 0) then begin
+         if (InterRaiz=nil)
+            then InterRaiz:= cls_Vector.crear(2)
+            else InterRaiz.Redimensionar(InterRaiz.N+3);
+         InterRaiz.cells[InterRaiz.N-1]:=Inter.cells[j];
+         InterRaiz.cells[InterRaiz.N]:=Inter.cells[j+1];
       end;
    end;
-  for j:=3 to 4 do
-   begin
-    if abs(m.cells[m.NumF,j]-m.cells[m.NumF,j+1])>0 then
-      begin
-        InterRaiz.cells[InterRaiz.N+1]:=Inter.cells[j];
-        InterRaiz.cells[InterRaiz.N+2]:=Inter.cells[j+1];
-        InterRaiz.N:=InterRaiz.N+2;
+  for j:=3 to 4 do begin
+      if abs(m.cells[m.NumF,j]-m.cells[m.NumF,j+1])>0 then begin
+         if (InterRaiz=nil)
+              then InterRaiz:= cls_Vector.crear(2)
+              else InterRaiz.Redimensionar(InterRaiz.N+3);
+         InterRaiz.cells[InterRaiz.N-1]:=Inter.cells[j];
+         InterRaiz.cells[InterRaiz.N]:=Inter.cells[j+1];
       end;
-   end;
+  end;
+  Result:= InterRaiz;
 end;
 
 Function Cls_Polin.Sturm():Cls_Vector;
 var
-  cota,interR:Cls_Vector;
-  c1, c2, c3, c4: extended;
+  cota,interR: Cls_Vector;
+  c1,c2,c3,c4: extended;
 begin
-  if self.Grado>0 then
-    begin
-      cota:=Cls_Vector.crear(100);//Este Cota sera el intervalo a trabajar
-      interR:=Cls_Vector.crear(100);//Este interR contendra los puntos que encierran una raiz
       self.Invertir_Coef();
-      c1:=cotaInfNegLaguerre(Self.Coeficientes);
-      c2:=cotaSupNegLaguerre(Self.Coeficientes);
-      c3:=cotaInfPosLaguerre(Self.Coeficientes);
-      c4:=cotaSupPosLaguerre(Self.Coeficientes);
+      c1:=cotaInfNegLaguerre(Coef);
+      c2:=cotaSupNegLaguerre(Coef);
+      c3:=cotaInfPosLaguerre(Self.Coef);
+      c4:=cotaSupPosLaguerre(Self.Coef);
+      self.Invertir_Coef();
       if (c1<>0) and (c2<>0) then
         if (c3<>0) and (c4<>0) then
           begin
+            cota:= Cls_Vector.crear(6);//Este Cota sera el intervalo a trabajar
             cota.cells[0]:=c1;
             cota.cells[1]:=(c1+c2)/2;
             cota.cells[2]:=c2;
             cota.cells[3]:=c3;
             cota.cells[4]:=(c3+c4)/2;
             cota.cells[5]:=c4;
-            cota.N:=5;
-            sturm1(Self.Coeficientes,cota,interR);
-            self.Invertir_Coef();
+            interR:= sturm1(cota);
           end
         else
           begin
+            cota:=Cls_Vector.crear(3);//Este Cota sera el intervalo a trabajar
             cota.cells[0]:=c1;
             cota.cells[1]:=(c1+c2)/2;
             cota.cells[2]:=c2;
-            cota.N:=2;
-            sturm1(Self.Coeficientes,cota,interR);
-            self.Invertir_Coef();
+            interR:= sturm1(cota);
           end
       else
         if (c3<>0) and (c4<>0) then
           begin
+            cota:=Cls_Vector.crear(3);//Este Cota sera el intervalo a trabajar
             cota.cells[0]:=c3;
             cota.cells[1]:=(c3+c4)/2;
             cota.cells[2]:=c4;
-            cota.N:=2;
-            sturm1(Self.Coeficientes,cota,interR);
-            self.Invertir_Coef();
+            InterR:= sturm1(cota);
           end
-        else
-          interR.cells[0]:=0;
-      self.Invertir_Coef();
-      result:=interR;
-    end;
+        else Begin
+          interR.Free;
+          InterR:= nil;
+        end;
+      result:= interR;
 end;
 Function Cls_Polin.Laguerre():Cls_Vector;
 var
@@ -1091,8 +1054,6 @@ var
     r2:extended;
     i2:extended;
     i:integer;
-    bu:boolean;
-    num,num2:extended;
     n:integer;
 begin
     a:=cls_polin.Crear(self.Grado(),0,false);

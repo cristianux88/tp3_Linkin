@@ -110,7 +110,6 @@ Procedure Cls_Vector.Redimensionar(cant: integer);
 Begin
      setlength(xCell, cant);
      N:= cant-1;
-
 end;
 
 Procedure Cls_Vector.Intercambiar(const i: integer; const j: integer);

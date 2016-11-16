@@ -58,17 +58,23 @@ Begin
 end;
 Procedure TForm4.actualiza();
 Var
-   vector: cls_Vector;
+   Vector: cls_Vector;
 Begin
-     Vector:= cls_Vector.crear(4);
-     polin.Lagrange(vector);
+     //Lagrange
+     Vector:= Cls_Vector.Crear(4);
+     Polin.Lagrange(Vector);
      Lagrange_Memo.Lines.Text:= Vector.ToString(2);
-     vector:= polin.Laguerre();
+     //Laguerre
+     Vector.Free;
+     Vector:= Polin.Laguerre();
      Laguerre_Memo.Lines.Text:= Vector.ToString(2);
+     //Newton
      Vector.Free;
      vector:= polin.cotasNewton();
      Newton_Memo.Lines.Text:= Vector.ToString(2);
-     Vector:= polin.sturm();
+     //Sturm
+     Vector.Free;
+     Vector:= Polin.Sturm();
      Sturm_Memo.Lines.Text:= Vector.ToString(2);
 end;
 

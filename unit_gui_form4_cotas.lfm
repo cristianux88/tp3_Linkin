@@ -122,7 +122,6 @@ object Form4: TForm4
       ReadOnly = True
       ScrollBars = ssAutoVertical
       TabOrder = 0
-      Visible = False
     end
   end
 end

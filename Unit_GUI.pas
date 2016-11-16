@@ -106,8 +106,10 @@ Begin
          actualiza_Posibles_Raices_Enteras();
          MASC_RAC:= 2;
          actualiza_Posibles_Raices_Racionales();
-         if (Form4<>nil) then
+         if (Form4<>nil) then Begin
              Form4.actualiza();
+             Form4.Show;
+         end;
      end;
      self.check_enabled();
 end;
@@ -211,7 +213,7 @@ begin
      if (Form4=nil) then Begin
         Form4:= TForm4.Crear(nil,Pol_N);
         Form4.Show;
-     end;
+     end else Actualiza();
 end;
 
 procedure TForm1.Item_Div1Click(Sender: TObject);
