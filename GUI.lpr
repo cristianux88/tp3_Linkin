@@ -6,7 +6,7 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, Unit_GUI, Unit_GUI_Form4_Cotas, Unit_GUI_Form3;
+  Forms, Unit_GUI, Unit_GUI_Form4_Cotas, Unit_GUI_Form3, Unit_GUI_Form5;
 {$R *.res}
 begin
   RequireDerivedFormResource:=True;

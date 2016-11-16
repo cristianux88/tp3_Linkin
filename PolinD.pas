@@ -30,6 +30,7 @@ Type
          Function derivada():cls_Polin; //devuelve la derivada primera del polinomio
          Function ruffini(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
          Function hornerCuadratico(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
+         function newton(x1,error:extended): extended; //newton para Polinomios
          Function PosiblesRaicesEnteras(): cls_Vector;
          Function PosiblesRaicesRacionales(): cls_Vector;
          Procedure Lagrange(var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
@@ -47,6 +48,8 @@ Type
          //hornerCuad es llamado por hornerCuadratico()
          function hornerCuad(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
          function subPolin(posini:integer;cant:integer):Cls_Polin; //no le veo la necesidad de q sea publico
+         //Horner Doble para Newton
+         function hornerDoble(alfa:extended; var P:extended; var dP:extended):boolean;
          //Posibles Raices Enteras
          Function detDivPos(num:integer): cls_Vector;
          Function EvaluarPolinomio(P: Cls_Vector; X: extended): extended;
@@ -60,24 +63,24 @@ Type
          function cotaInfPosNewton():extended;
          function cotaSupNegNewton():extended;
          function cotaInfNegNewton():extended;
-
          //SubFunciones Cotas para Lagrange
          function cotaInfPosLagrangue(Pol:Cls_Vector):extended;
          function cotaSupNegLagrangue(Pol:Cls_Vector):extended;
          function cotaInfNegLagrangue(Pol:Cls_Vector):extended;
-
          //SubFunciones Cotas para Laguerre
          function cotaSupPosLaguerre(Pol:Cls_Vector):extended;
          function cotaSupNegLaguerre(Pol:Cls_Vector):extended;
          function cotaInfPosLaguerre(Pol:Cls_Vector):extended;
          function cotaInfNegLaguerre(Pol:Cls_Vector):extended;
          procedure Laguerre1(Pol:Cls_Vector;var cota:Cls_Vector);
-
          //Sturm
          Function sturm1(Inter:Cls_Vector): Cls_Vector;
          Function restoDivPolinomioNxN(Divisor:Cls_Polin): Cls_Polin;
-         const SALTO=0.5;
-         const max_iter=200;
+
+         Const
+              SALTO=0.5;
+              max_iter=200;
+   	      INFINITO=9999999;
 end;
 
 implementation
@@ -373,6 +376,41 @@ begin
   ruffiniEvaluador(P,B,X);
   EvaluarPolinomio:= B.cells[B.N];
   B.destroy();
+end;
+
+function cls_Polin.hornerDoble(alfa:extended; var P:extended; var dP:extended):boolean;
+var
+	i:integer;
+begin
+    P:=self.coef.cells[self.Grado];
+    dP:=0;
+    for i:=self.Grado-1 downto 0 do
+    begin
+        dP:=P+alfa*dP;
+        P :=self.coef.cells[i]+alfa*P;
+    end;
+    //retornados {P,dP}
+end;
+
+function Cls_Polin.newton(x1,error:extended): extended;
+var
+	P,dP,x0:extended;
+    iter:byte;
+begin
+    iter:=0;
+	repeat
+        x0:=x1;
+        self.hornerDoble(x0,P,dP);
+        if (dP<>0) then
+        	x1:=x0-(P/dP)
+        else
+        	iter:=MAX_ITER;
+        inc(iter);
+    until (abs(x1-x0)<error) or (iter>MAX_ITER);
+    if (iter>MAX_ITER) then
+    	result:=INFINITO
+    else
+        result:=x1;
 end;
 
 Function cls_Polin.detDivPos(num:integer): cls_Vector;

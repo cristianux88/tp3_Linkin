@@ -14,11 +14,7 @@ uses
     cthreads, cmem
     {$ENDIF}{$ENDIF}
     Classes, Forms, StdCtrls, Menus, PolinD, Controls, Types;
-
 type
-
-  { TForm1 }
-
   TForm1 = class(TForm)
     Bairstrow_Item: TMenuItem;
     Cotas: TMenuItem;
@@ -29,6 +25,7 @@ type
     item_invertir: TMenuItem;
     Item_Limpiar: TMenuItem;
     MainMenu1: TMainMenu;
+    Newton_Item: TMenuItem;
     Racionales_GroupBox: TGroupBox;
     enteras_Memo: TMemo;
     Racionales_Memo: TMemo;
@@ -47,6 +44,7 @@ type
     procedure Item_invertirClick(Sender: TObject);
     procedure Item_Div1Click(Sender: TObject);
     procedure Item_LimpiarClick(Sender: TObject);
+    procedure Newton_ItemClick(Sender: TObject);
     procedure Pol_N_MemoMouseWheelDown(Sender: TObject; Shift: TShiftState;
       MousePos: TPoint; var Handled: Boolean);
     procedure Pol_N_MemoMouseWheelUp(Sender: TObject; Shift: TShiftState;
@@ -83,7 +81,7 @@ var
 implementation
 {$R *.lfm}
 USES
-    Unit_GUI_Form2,  Unit_GUI_Form3, Unit_GUI_Form4_Cotas, SysUtils, Dialogs, VectorD;
+    Unit_GUI_Form2,  Unit_GUI_Form3, Unit_GUI_Form4_Cotas, Unit_GUI_Form5, SysUtils, Dialogs, VectorD;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
@@ -100,6 +98,8 @@ Begin
         MASC_RAC:= 2;
         if (Form4<>nil) then
             Form4.Close;
+        if (Form5<>nil) then
+            Form5.Close;
      end else Begin
          actualiza_Pol_N();
          actualiza_evalua();
@@ -109,6 +109,10 @@ Begin
          if (Form4<>nil) then Begin
              Form4.actualiza();
              Form4.Show;
+         end;
+         if (Form5<>nil) then Begin
+             Form5.actualiza();
+             Form5.Show;
          end;
      end;
      self.check_enabled();
@@ -252,6 +256,14 @@ procedure TForm1.Item_LimpiarClick(Sender: TObject);
 begin
      Pol_N_load:= False;
      self.actualiza();
+end;
+
+procedure TForm1.Newton_ItemClick(Sender: TObject);
+begin
+     if (Form5=nil) then Begin
+        Form5:= TForm5.Crear(nil,Pol_N);
+        Form5.Show;
+     end else Actualiza();
 end;
 
 procedure TForm1.Pol_N_MemoMouseWheelDown(Sender: TObject; Shift: TShiftState;

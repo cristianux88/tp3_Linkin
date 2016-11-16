@@ -155,6 +155,10 @@ object Form1: TForm1
         Caption = 'Bairstow...'
         OnClick = Bairstrow_ItemClick
       end
+      object Newton_Item: TMenuItem
+        Caption = 'Newton Polinomios...'
+        OnClick = Newton_ItemClick
+      end
     end
   end
 end

@@ -24,7 +24,6 @@ type
        constructor crear(Comp: Tcomponent; Pol: cls_Polin);
        procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
        Procedure actualiza();
-       Procedure Cerrar();
   Public
        Polin: cls_Polin;
   const
@@ -38,11 +37,6 @@ implementation
 {$R *.lfm}
 USES
     VectorD;
-
-Procedure TForm4.Cerrar();
-Begin
-     self.Close;
-end;
 
 procedure TForm4.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin

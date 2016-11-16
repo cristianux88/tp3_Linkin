@@ -23,12 +23,7 @@ BEGIN
    pol_N.Coef.cells[0]:= 1;
    pol_n.Coef.mostrar('Coef: ');
 
-   V:= Pol_N.Sturm();
-   //if V=nil then writeln('nil')
-   //else Begin
-   V.mostrar('Sturm: ');
-   Writeln('N=',V.N);
-   //end;
+   writeln('Una raiz: ',Pol_N.newton(0,0.00001));
   readln;
 
 END.
