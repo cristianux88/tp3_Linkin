@@ -7,13 +7,13 @@ object Form5: TForm5
   ClientHeight = 191
   ClientWidth = 390
   OnClose = FormClose
-  OnCreate = FormCreate
   LCLVersion = '1.6.0.4'
   object Error_Edit: TEdit
     Left = 56
     Height = 37
     Top = 16
     Width = 128
+    OnEditingDone = Error_EditEditingDone
     TabOrder = 0
     Text = 'Error_Edit'
   end
@@ -31,6 +31,7 @@ object Form5: TForm5
     Height = 37
     Top = 16
     Width = 128
+    OnEditingDone = X0_EditEditingDone
     TabOrder = 1
     Text = 'X0_Edit'
   end

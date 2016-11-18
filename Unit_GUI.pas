@@ -303,7 +303,6 @@ begin
      if (MASC_RAC=MIN_MASC+1) then MASC_RAC:= MAX_MASC
      else dec(MASC_RAC);
      Racionales_Memo.Lines.Text:= raices.ToString(MASC_RAC);
-     //showmessage(IntToStr(Masc_RAC));
      raices.Free;
 end;
 
